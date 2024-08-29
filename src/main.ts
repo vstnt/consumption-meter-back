@@ -1,6 +1,11 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import * as bodyParser from 'body-parser';
+
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,6 +21,10 @@ async function bootstrap() {
       });
     },
   }));
+
+  app.use(bodyParser.json({ limit: '20mb' }));
+  app.use(bodyParser.urlencoded({ limit: '20mb', extended: true }));
+
   await app.listen(3000);
 }
 bootstrap();

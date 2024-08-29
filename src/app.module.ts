@@ -14,7 +14,7 @@ import { MeasuresModule } from './measures/measures.module';
       entities: [],
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([]),
+    TypeOrmModule.forFeature([]), // isso fica?
     MeasuresModule,
   ],
 })
