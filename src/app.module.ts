@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MeasuresModule } from './measures/measures.module';
+import { Measure } from './measures/measure.entity';
 
 @Module({
   imports: [
@@ -11,10 +12,9 @@ import { MeasuresModule } from './measures/measures.module';
       username: 'consumption_meter_user',
       password: 'testeshopper',
       database: 'consumption_meter_db',
-      entities: [],
+      entities: [Measure],
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([]), // isso fica?
     MeasuresModule,
   ],
 })

@@ -9,7 +9,7 @@ import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe({ // não devo enviar esse argumento da pipe para um arquivo isolado?
+  app.useGlobalPipes(new ValidationPipe({ 
     exceptionFactory: (errors) => {
       const errorDescription = errors.map(
         error => `${error.property} has wrong value ${error.value}, ${Object.values(error.constraints).join(', ')}`
