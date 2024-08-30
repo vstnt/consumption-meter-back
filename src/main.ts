@@ -6,8 +6,26 @@ import { AppModule } from './app.module';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import * as bodyParser from 'body-parser';
 
+function validateEnvVariables() {
+  const requiredEnvVars = [
+    'DB_HOST',
+    'DB_PORT',
+    'DB_USERNAME',
+    'DB_PASSWORD',
+    'DB_NAME',
+    'GEMINI_API_KEY',
+  ];
+
+  requiredEnvVars.forEach((envVar) => {
+    if (!process.env[envVar]) {
+      throw new Error(`Variável de ambiente ${envVar} não está definida.`);
+    }
+  });
+}
+
 
 async function bootstrap() {
+  validateEnvVariables();  // Validação das variáveis de ambiente
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({ 
     exceptionFactory: (errors) => {

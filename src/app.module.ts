@@ -7,11 +7,11 @@ import { Measure } from './measures/entities/measure.entity';
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'consumption_meter_user',
-      password: 'testeshopper',
-      database: 'consumption_meter_db',
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT, 10),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
       entities: [Measure],
       synchronize: true,
     }),
