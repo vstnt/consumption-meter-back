@@ -1,0 +1,19 @@
+# Ignorar node_modules
+node_modules
+
+# Ignorar arquivos de log
+*.log
+
+# Ignorar diretório de build
+dist/
+
+# Ignorar arquivos de configuração do editor
+.vscode/
+
+# Ignorar arquivos de configuração pessoais
+.env
+.DS_Store
+
+# Ignorar o arquivo docker-compose.yml e Dockerfile para não serem incluídos na imagem
+docker-compose.yml
+Dockerfile
