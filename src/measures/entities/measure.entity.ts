@@ -1,7 +1,9 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
+
 @Entity()
 export class Measure {
+  
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -28,4 +30,5 @@ export class Measure {
 
   @Column({ type: 'timestamp', nullable: true })
   image_expiration: Date;
+
 }

@@ -8,8 +8,9 @@ import * as path from 'path';
 import * as uuid from 'uuid';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Measure } from '../entities/measure.entity';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { ConfirmMeasureDto } from '../dto/confirm-measure.dto';
+
 
 @Injectable()
 export class MeasuresService {
@@ -21,17 +22,11 @@ export class MeasuresService {
 
 
   async create(measurementRequest: MeasurementRequest, thisUrlPath: string) {
-    // Validação e transformação da imagem
-    const { imageBase64, imageMimeType } = this.validateImage(measurementRequest.image);
-
-    const measureDate = new Date(measurementRequest.measure_datetime);
-    await this.checkExistingMeasure(
-      measurementRequest.customer_code,
-      measurementRequest.measure_type,
-      measureDate
-    );
     
-    // Criar um arquivo temporário
+    const measureDate = new Date(measurementRequest.measure_datetime);
+    await this.checkExistingMeasure(measurementRequest.customer_code, measurementRequest.measure_type, measureDate);
+    
+    const { imageBase64, imageMimeType } = this.validateImage(measurementRequest.image);
     const imageBuffer = Buffer.from(imageBase64, 'base64');
     const tempFilePath = path.join(__dirname, `${uuid.v4()}.${imageMimeType.split('/')[1]}`);
     fs.writeFileSync(tempFilePath, imageBuffer);
@@ -41,7 +36,6 @@ export class MeasuresService {
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 1);
 
-    // Persistir a nova medida no banco de dados
     const newMeasure = this.measureRepository.create({
       customer_code: measurementRequest.customer_code,
       measure_datetime: measureDate,
@@ -61,15 +55,15 @@ export class MeasuresService {
     };
   }
 
-  // Método para confirmar ou corrigir a medida
+
   async confirm(confirmMeasureDto: ConfirmMeasureDto) {
+    
     const { measure_uuid, confirmed_value } = confirmMeasureDto;
 
-    // Verificar se o código de leitura existe
     const existingMeasure = await this.measureRepository.findOne({
       where: { id: measure_uuid },
     });
-
+    
     if (!existingMeasure) {
       throw new HttpException({
         error_code: 'MEASURE_NOT_FOUND',
@@ -77,7 +71,6 @@ export class MeasuresService {
       }, HttpStatus.NOT_FOUND);
     }
 
-    // Verificar se a leitura já foi confirmada
     if (existingMeasure.is_confirmed) {
       throw new HttpException({
         error_code: 'CONFIRMATION_DUPLICATE',
@@ -85,19 +78,18 @@ export class MeasuresService {
       }, HttpStatus.CONFLICT);
     }
 
-    // Atualizar o valor confirmado e marcar como confirmado
     existingMeasure.measure_value = confirmed_value;
     existingMeasure.is_confirmed = true;
-
     await this.measureRepository.save(existingMeasure);
 
     return { success: true };
   }
 
-  // Método para listar medidas de um cliente
-  async list(thisUrlPath: string, customer_code: string, measure_type?: string) {
+
+  async list(aplicationPath: string, customer_code: string, measure_type?: string) {
+    
     const query = this.measureRepository.createQueryBuilder('measure')
-      .where('measure.customer_code = :customer_code', { customer_code });
+    .where('measure.customer_code = :customer_code', { customer_code });
 
     if (measure_type) {
       const validTypes = ['WATER', 'GAS'];
@@ -113,9 +105,9 @@ export class MeasuresService {
       query.andWhere('measure.measure_type = :measure_type', { measure_type: normalizedType });
     }
 
-    const measures = await query.getMany();
+    const retrievedMeasures = await query.getMany();
 
-    if (measures.length === 0) {
+    if (retrievedMeasures.length === 0) {
       throw new HttpException({
         error_code: 'MEASURES_NOT_FOUND',
         error_description: 'Nenhuma leitura encontrada',
@@ -124,51 +116,56 @@ export class MeasuresService {
 
     return {
       customer_code,
-      measures: measures.map(measure => ({
+      measures: retrievedMeasures.map(measure => ({
         measure_uuid: measure.id,
         measure_datetime: measure.measure_datetime,
         measure_type: measure.measure_type,
         has_confirmed: measure.is_confirmed,
-        image_url: thisUrlPath+'/images/'+measure.id
+        image_url: aplicationPath+'/images/'+measure.id
       })),
     };
   }
+
 
   async findById(id: string): Promise<Measure | null> {
     return this.measureRepository.findOne({ where: { id } });
   }
 
 
+
+
   private async checkExistingMeasure(customer_code: string, measure_type: string, measureDate: Date) {
+    
+    const startOfMonth = new Date(measureDate.getFullYear(), measureDate.getMonth(), 1);
+    const endOfMonth = new Date(measureDate.getFullYear(), measureDate.getMonth() + 1, 0, 23, 59, 59);
+  
     const existingMeasure = await this.measureRepository.findOne({
       where: {
         customer_code: customer_code,
         measure_type: measure_type,
-        measure_datetime: measureDate,
+        measure_datetime: Between(startOfMonth, endOfMonth),
       },
       order: { measure_datetime: 'DESC' },
     });
-
+  
     if (existingMeasure) {
-      const currentMonth = measureDate.getMonth();
-      const measureMonth = new Date(existingMeasure.measure_datetime).getMonth();
-
-      if (currentMonth === measureMonth) {
-        throw new HttpException({
-          error_code: 'DOUBLE_REPORT',
-          error_description: 'Leitura do mês já realizada',
-        }, HttpStatus.CONFLICT);
-      }
+      throw new HttpException({
+        error_code: 'DOUBLE_REPORT',
+        error_description: 'Leitura do mês já realizada',
+      }, HttpStatus.CONFLICT);
     }
+
   }
 
-  private validateImage(measurementRequestImage: string) {
+
+  private validateImage(measurementImage: string) {
+    
     let imageBase64: string;
     let imageMimeType: string | null = null;
 
-    if (measurementRequestImage.includes(',')) {
+    if (measurementImage.includes(',')) {
       // Caso com prefixo data:image/png;base64, etc.
-      const [prefix, base64Data] = measurementRequestImage.split(',');
+      const [prefix, base64Data] = measurementImage.split(',');
 
       if (!prefix.startsWith('data:') || !prefix.includes(';base64')) {
         throw new InvalidDataRequestException('Formato de imagem inválido');
@@ -189,4 +186,5 @@ export class MeasuresService {
 
     return { imageBase64, imageMimeType };
   }
+
 }

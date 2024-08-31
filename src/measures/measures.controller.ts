@@ -5,14 +5,11 @@ import { ConfirmMeasureDto } from './dto/confirm-measure.dto';
 import { Request } from 'express';
 
 
-
 @Controller()
 export class MeasuresController {
-  
   constructor(
     private readonly measuresService: MeasuresService,
   ) {}
-
 
   @Post('upload')
   @HttpCode(200)
@@ -42,7 +39,5 @@ export class MeasuresController {
     const result = await this.measuresService.list(thisUrlPath, customer_code, measure_type);
     return result;
   }
+
 }
-
-
-

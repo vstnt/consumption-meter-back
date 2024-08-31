@@ -8,9 +8,11 @@ import { ImagesController } from './images.controller';
 
 
 @Module({
+
     imports: [TypeOrmModule.forFeature([Measure])],
     controllers: [MeasuresController, ImagesController],
     providers: [MeasuresService, GoogleGenerativeAIService],
     exports: [MeasuresService],
+    
 })
 export class MeasuresModule {}

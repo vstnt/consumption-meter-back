@@ -2,6 +2,7 @@ import { Controller, Get, Param, Res, HttpException, HttpStatus } from '@nestjs/
 import { MeasuresService } from './services/measures.service';
 import { Response } from 'express';
 
+
 @Controller('images')
 export class ImagesController {
   constructor(private readonly measuresService: MeasuresService) {}
@@ -21,4 +22,5 @@ export class ImagesController {
     const imageBuffer = Buffer.from(measure.image_data, 'base64');
     res.end(imageBuffer);
   }
+  
 }

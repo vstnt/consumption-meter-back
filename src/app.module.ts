@@ -3,7 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MeasuresModule } from './measures/measures.module';
 import { Measure } from './measures/entities/measure.entity';
 
+
 @Module({
+  
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -17,5 +19,6 @@ import { Measure } from './measures/entities/measure.entity';
     }),
     MeasuresModule,
   ],
+  
 })
 export class AppModule {}

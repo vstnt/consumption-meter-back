@@ -14,4 +14,5 @@ export class CreateMeasureDto {
   @Transform(({ value }) => typeof value === 'string' ? value.toUpperCase() : value)
   @IsIn(['WATER', 'GAS'], { message: 'o tipo de medição deve ser "WATER" ou "GAS".' })
   measure_type: string;
+  
 }
