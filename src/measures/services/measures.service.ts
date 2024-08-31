@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { MeasurementRequest } from '../interfaces/measurement-request.interface';
 import { isBase64 } from 'class-validator';
-import { InvalidDataRequestException } from 'src/common/exceptions/invalid-data-request.exception';
+import { InvalidDataRequestException } from '../exceptions/invalid-data-request.exception';
 import { GoogleGenerativeAIService } from './google-generative-ai.service';
 import * as fs from 'fs';
 import * as path from 'path';
